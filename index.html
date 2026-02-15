@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxSentinel | Deepfake Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-box">
+            <h2>🛡️ AGENT LOGIN</h2>
+            <p>Enter your ID to access VoxSentinel</p>
+            <input type="text" id="username-input" placeholder="Agent Name / ID" autocomplete="off">
+            <button id="login-btn" class="cyber-btn">AUTHENTICATE</button>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <span class="icon">🛡️</span> VOX<span class="highlight">SENTINEL</span>
+        </div>
+        <div class="status-indicator">
+            <span class="blink"></span> SYSTEM ONLINE
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <section id="scan-section" class="card scanner-card">
+            <h2>Audio Forensic Scanner</h2>
+            <p class="subtitle">Upload audio or record live to detect AI manipulation.</p>
+            
+            <div class="visualizer-container">
+                <canvas id="audio-visualizer"></canvas>
+            </div>
+
+            <div class="controls">
+                <button id="recordBtn" class="cyber-btn">
+                    <span id="btnText">INITIATE SCAN</span>
+                </button>
+                <input type="file" id="fileUpload" accept="audio/*" hidden>
+                <button id="uploadBtn" class="secondary-btn">📂 Upload File</button>
+            </div>
+            <p id="status-text">Ready for input...</p>
+        </section>
+
+        <section id="result-section" class="hidden">
+            <div class="grid-container">
+                
+                <div class="card result-card">
+                    <h3>Analysis Verdict</h3>
+                    <div id="verdict-display" class="verdict-box">
+                        <span class="loader">Analyzing...</span>
+                    </div>
+                    <div class="confidence-meter">
+                        <label>AI Confidence Level</label>
+                        <div class="progress-bar">
+                            <div id="confidence-fill" class="fill"></div>
+                        </div>
+                        <span id="confidence-text">0%</span>
+                    </div>
+                </div>
+
+                <div class="card evidence-card">
+                    <h3>Spectral Evidence</h3>
+                    <div class="image-frame">
+                        <img id="spectrogram-img" src="" alt="Waiting for data...">
+                    </div>
+                    <div class="metadata">
+                        <p><strong>Scan ID:</strong> <span id="scan-id">---</span></p>
+                        <p><strong>Timestamp:</strong> <span id="scan-time">---</span></p>
+                        <button id="download-report" class="secondary-btn" style="color: var(--accent-color); margin-top: 15px;">
+                            <i class="fas fa-file-pdf"></i> Download Forensic Report
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>SECURE CONNECTION ESTABLISHED • AWS CLOUD (us-east-1)</p>
+    </footer>
+    <button id="theme-btn" class="theme-toggle">🌗</button>
+    <script src="script.js"></script>
+</body>
+</html>
