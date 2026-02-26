@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoxSentinel | Deepfake Detection System</title>
+    <title>VoxSentinel | Multi-Modal Forensic Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,23 +30,63 @@
     </nav>
 
     <div class="container">
+        <div style="text-align: center; margin-bottom: 30px; margin-top: -10px;">
+            <p style="color: var(--text-color); opacity: 0.8; font-size: 1.1em;">
+                An AI-powered, multi-modal forensic system for deepfake detection and digital authenticity verification.
+            </p>
+        </div>
         
-        <section id="scan-section" class="card scanner-card">
+        <div class="mode-switcher" style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="mode-audio" class="mode-btn active" style="padding: 10px 20px; background: var(--accent-color); color: #000; border: none; cursor: pointer; font-weight: bold;">🎤 Audio</button>
+            <button id="mode-text" class="mode-btn" style="padding: 10px 20px; background: transparent; color: var(--text-color); border: 1px solid var(--accent-color); cursor: pointer;">📝 Text</button>
+            <button id="mode-image" class="mode-btn" style="padding: 10px 20px; background: transparent; color: var(--text-color); border: 1px solid var(--accent-color); cursor: pointer;">🖼️ Image</button>
+            <button id="mode-video" class="mode-btn" style="padding: 10px 20px; background: transparent; color: var(--text-color); border: 1px solid var(--accent-color); cursor: pointer;">🎥 Video</button>
+        </div>
+
+        <section id="audio-section" class="card scanner-card">
             <h2>Audio Forensic Scanner</h2>
-            <p class="subtitle">Upload audio or record live to detect AI manipulation.</p>
-            
+            <p class="subtitle">Upload audio or record live to detect AI voice cloning.</p>
             <div class="visualizer-container">
                 <canvas id="audio-visualizer"></canvas>
             </div>
-
             <div class="controls">
-                <button id="recordBtn" class="cyber-btn">
-                    <span id="btnText">INITIATE SCAN</span>
-                </button>
+                <button id="recordBtn" class="cyber-btn"><span id="btnText">INITIATE SCAN</span></button>
                 <input type="file" id="fileUpload" accept="audio/*" hidden>
                 <button id="uploadBtn" class="secondary-btn">📂 Upload File</button>
             </div>
             <p id="status-text">Ready for input...</p>
+        </section>
+
+        <section id="text-section" class="card scanner-card hidden" style="display: none;">
+            <h2>Text Forensic Scanner</h2>
+            <p class="subtitle">Paste text to detect GPT / LLM generation patterns.</p>
+            <textarea id="text-input" placeholder="Paste suspicious text here..." rows="6" style="width: 100%; background: #0a0f1c; color: #fff; border: 1px solid #333; padding: 10px; margin-bottom: 15px;"></textarea>
+            <div class="controls">
+                <button id="analyzeTextBtn" class="cyber-btn">ANALYZE TEXT</button>
+            </div>
+            <p id="text-status-text">Ready for analysis...</p>
+        </section>
+
+        <section id="image-section" class="card scanner-card hidden" style="display: none;">
+            <h2>Image Forensic Scanner</h2>
+            <p class="subtitle">Upload images to detect Deepfakes and Stable Diffusion artifacts.</p>
+            <div class="image-upload-area" id="image-drop-area" style="border: 2px dashed #00f2ff; padding: 40px; text-align: center; margin-bottom: 20px; cursor: pointer;">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3em; color: #00f2ff; margin-bottom: 10px;"></i>
+                <p>Click or Drop Image Here</p>
+                <input type="file" id="imageUploadInput" accept="image/*" hidden>
+            </div>
+            <p id="image-status-text">Ready for analysis...</p>
+        </section>
+
+        <section id="video-section" class="card scanner-card hidden" style="display: none;">
+            <h2>Video Forensic Scanner</h2>
+            <p class="subtitle">Upload MP4 to detect Deepfake faces and synthetic audio (Cross-Modal).</p>
+            <div class="image-upload-area" id="video-drop-area" style="border: 2px dashed #00f2ff; padding: 40px; text-align: center; margin-bottom: 20px; cursor: pointer;">
+                <i class="fas fa-video" style="font-size: 3em; color: #00f2ff; margin-bottom: 10px;"></i>
+                <p>Click or Drop Video (MP4) Here</p>
+                <input type="file" id="videoUploadInput" accept="video/mp4" hidden>
+            </div>
+            <p id="video-status-text">Ready for analysis...</p>
         </section>
 
         <section id="result-section" class="hidden">
@@ -54,40 +94,47 @@
                 
                 <div class="card result-card">
                     <h3>Analysis Verdict</h3>
-                    <div id="verdict-display" class="verdict-box">
-                        <span class="loader">Analyzing...</span>
-                    </div>
+                    <div id="verdict-display" class="verdict-box"><span class="loader">Analyzing...</span></div>
                     <div class="confidence-meter">
-                        <label>AI Confidence Level</label>
-                        <div class="progress-bar">
-                            <div id="confidence-fill" class="fill"></div>
-                        </div>
+                        <label>AI Probability Score</label>
+                        <div class="progress-bar"><div id="confidence-fill" class="fill"></div></div>
                         <span id="confidence-text">0%</span>
                     </div>
                 </div>
 
                 <div class="card evidence-card">
-                    <h3>Spectral Evidence</h3>
-                    <div class="image-frame">
+                    <h3 id="evidence-title">Evidence</h3>
+                    
+                    <div id="audio-evidence-container" class="image-frame">
                         <img id="spectrogram-img" src="" alt="Waiting for data...">
                     </div>
+                    
+                    <div id="text-evidence-container" class="text-preview hidden" style="display: none; padding: 10px; background: #111;">
+                        <p id="evidence-text" style="font-family: monospace; font-size: 0.9em; color: #ccc;">No text analyzed yet.</p>
+                    </div>
+
+                    <div id="image-evidence-container" class="image-frame hidden" style="display: none;">
+                        <img id="analyzed-image-preview" src="" alt="Analyzed Image" style="max-width: 100%; border-radius: 4px;">
+                    </div>
+
                     <div class="metadata">
                         <p><strong>Scan ID:</strong> <span id="scan-id">---</span></p>
-                        <p><strong>Timestamp:</strong> <span id="scan-time">---</span></p>
                         <button id="download-report" class="secondary-btn" style="color: var(--accent-color); margin-top: 15px;">
-                            <i class="fas fa-file-pdf"></i> Download Forensic Report
+                            <i class="fas fa-file-pdf"></i> Download Report
                         </button>
                     </div>
+                </div>
+
+                <div class="card forensics-card" style="grid-column: 1 / -1;">
+                    <h3>🔍 Forensic Indicator Breakdown</h3>
+                    <ul id="forensic-list" class="forensic-list"><li>Waiting...</li></ul>
                 </div>
 
             </div>
         </section>
 
     </div>
-
-    <footer>
-        <p>SECURE CONNECTION ESTABLISHED • AWS CLOUD (us-east-1)</p>
-    </footer>
+    <footer><p>SECURE CONNECTION ESTABLISHED • AWS CLOUD (us-east-1)</p></footer>
     <button id="theme-btn" class="theme-toggle">🌗</button>
     <script src="script.js"></script>
 </body>
