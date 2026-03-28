@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+
+  --color-background: #10141a;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-primary: #00daf3;
+  --color-primary-container: #007e8c;
+  --color-secondary: #ecffe3;
+  --color-surface: #10141a;
+  --color-surface-container-low: #181c22;
+  --color-surface-container-high: #262a31;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: #dfe2eb; /* on-surface text */
+}
+
+/* Base custom styles based on Stitch design */
+.glass-panel {
+  background-color: rgba(24, 28, 34, 0.7); /* surface-container-low with opacity */
+  backdrop-filter: blur(16px);
+  border-radius: 0.75rem; /* xl */
+  border: 1px solid rgba(66, 70, 86, 0.15); /* outline-variant ghost border */
+}
+
+/* Light mode overrides */
+.light body {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.light .glass-panel {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bg-grad-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+}
