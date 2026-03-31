@@ -1,47 +1,188 @@
 @import "tailwindcss";
-
-@custom-variant dark (&:where(.dark, .dark *));
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
 
 @theme {
-  --font-heading: "Space Grotesk", sans-serif;
-  --font-body: "Manrope", sans-serif;
-
-  --color-background: #10141a;
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
-  --color-primary: #00daf3;
-  --color-primary-container: #007e8c;
-  --color-secondary: #ecffe3;
-  --color-surface: #10141a;
-  --color-surface-container-low: #181c22;
-  --color-surface-container-high: #262a31;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Space Grotesk", sans-serif;
+  --color-background: var(--bg-color);
+  --color-card: var(--card-bg);
+  --color-textPrimary: var(--text-primary);
+  --color-textSecondary: var(--text-secondary);
+  --color-accent: var(--accent-color);
+  --color-danger: var(--danger-color);
+  --color-success: var(--success-color);
+  --color-amber: var(--amber-color);
 }
 
-body {
-  font-family: var(--font-body);
-  background-color: var(--color-background);
-  color: #dfe2eb; /* on-surface text */
+@layer base {
+  :root {
+    --bg-color: #0a0a0a;
+    --card-bg: rgba(15, 15, 15, 0.85);
+    --text-primary: #e8eaf0;
+    --text-secondary: #6b7280;
+    --accent-color: #10ffb1;
+    --danger-color: #ff2d55;
+    --success-color: #10ffb1;
+    --amber-color: #ffb800;
+  }
+
+  body {
+    @apply bg-background text-textPrimary font-sans antialiased;
+    background-color: #0a0a0a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #10ffb133;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #10ffb166;
+  }
 }
 
-/* Base custom styles based on Stitch design */
-.glass-panel {
-  background-color: rgba(24, 28, 34, 0.7); /* surface-container-low with opacity */
-  backdrop-filter: blur(16px);
-  border-radius: 0.75rem; /* xl */
-  border: 1px solid rgba(66, 70, 86, 0.15); /* outline-variant ghost border */
+/* ────────────────────────────────────────────
+   Keyframe Animations
+──────────────────────────────────────────── */
+
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
 }
 
-/* Light mode overrides */
-.light body {
-  background-color: #f1f5f9;
-  color: #1e293b;
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
 }
 
-.light .glass-panel {
-  background-color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+@keyframes rotate-hex {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-.bg-grad-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+@keyframes counter-rotate {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+@keyframes grid-pan {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+@keyframes typewriter-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes dash-draw {
+  from { stroke-dashoffset: 283; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* ────────────────────────────────────────────
+   Utility Classes
+──────────────────────────────────────────── */
+
+.glass {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-strong {
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(16, 255, 177, 0.08);
+}
+
+.neon-glow-emerald {
+  text-shadow: 0 0 20px rgba(16, 255, 177, 0.6), 0 0 40px rgba(16, 255, 177, 0.3);
+}
+
+.neon-glow-danger {
+  text-shadow: 0 0 20px rgba(255, 45, 85, 0.6), 0 0 40px rgba(255, 45, 85, 0.3);
+}
+
+.neon-glow-amber {
+  text-shadow: 0 0 20px rgba(255, 184, 0, 0.6), 0 0 40px rgba(255, 184, 0, 0.3);
+}
+
+.border-glow-emerald {
+  box-shadow: 0 0 0 1px rgba(16, 255, 177, 0.3), 0 0 20px rgba(16, 255, 177, 0.1);
+}
+
+.border-glow-danger {
+  box-shadow: 0 0 0 1px rgba(255, 45, 85, 0.3), 0 0 20px rgba(255, 45, 85, 0.1);
+}
+
+.scan-line-animate {
+  animation: scan-line 3s linear infinite;
+}
+
+.pulse-ring-animate {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.rotate-hex-animate {
+  animation: rotate-hex 8s linear infinite;
+}
+
+.counter-rotate-animate {
+  animation: counter-rotate 12s linear infinite;
+}
+
+.float-orb-animate {
+  animation: float-orb 12s ease-in-out infinite;
+}
+
+.grid-pan-animate {
+  animation: grid-pan 3s linear infinite;
+}
+
+/* Corner bracket decoration */
+.corner-brackets {
+  position: relative;
+}
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: rgba(16, 255, 177, 0.4);
+  border-style: solid;
+}
+.corner-brackets::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+}
+.corner-brackets::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
 }
