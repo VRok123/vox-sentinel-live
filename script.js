@@ -1,5 +1,5 @@
 /* --- CONFIGURATION --- */
-const API_URL = "https://towards-assists-nomination-liz.trycloudflare.com"; // Keep your active URL here
+const API_URL = "https://downloading-fin-bool-for.trycloudflare.com"; // Keep your active URL here
 
 /* --- DOM ELEMENTS --- */
 const recordBtn = document.getElementById("recordBtn");
@@ -245,14 +245,25 @@ function displayResults(data) {
         document.getElementById("analyzed-image-preview").src = data.image_url; 
     }
 
-    // Staggered Forensics List
+    // Staggered Forensics List with New Emoji Mappings
     forensicList.innerHTML = ""; 
     if (data.forensics && Array.isArray(data.forensics)) {
         data.forensics.forEach((ind, index) => {
             const li = document.createElement("li");
             li.textContent = ind;
             li.className = "forensic-item";
-            li.style.borderColor = ind.includes("✅") ? "var(--success-color)" : "var(--danger-color)";
+            
+            // Emoji-based CSS coloring
+            if (ind.includes("✅")) {
+                li.style.borderColor = "var(--success-color)";
+            } else if (ind.includes("⚠️")) {
+                li.style.borderColor = "var(--danger-color)";
+            } else if (ind.includes("🧠") || ind.includes("📊") || ind.includes("🔧") || ind.includes("ℹ️")) {
+                li.style.borderColor = "var(--accent-color)";
+            } else {
+                li.style.borderColor = "var(--text-secondary)";
+            }
+            
             li.style.animationDelay = `${index * 0.15}s`; // Stagger effect
             forensicList.appendChild(li);
         });
