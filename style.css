@@ -26,7 +26,7 @@
 body { background-color: var(--bg-color); color: var(--text-primary); font-family: var(--font-body); font-size: 1.05rem; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;}
 
 /* --- 2. NAVBAR & NAVIGATION --- */
-.navbar { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: var(--card-bg); flex-wrap: wrap; gap: 15px; }
+.navbar { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: var(--card-bg); flex-wrap: wrap; gap: 15px; position: relative; z-index: 10;}
 .logo { font-family: var(--font-head); font-weight: 700; font-size: 1.6rem; letter-spacing: -1px; }
 .highlight { color: var(--accent-color); }
 
@@ -40,7 +40,7 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 @keyframes blinker { 50% { opacity: 0; } }
 
 /* --- 3. MAIN LAYOUT --- */
-.container { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; }
+.container { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; position: relative; z-index: 10;}
 .view-section { width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; }
 
 .intro-text { color: var(--text-secondary); font-size: 1.2rem; line-height: 1.6;}
@@ -71,8 +71,8 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 .cyber-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 10px rgba(0,242,255,0.1); }
 
 /* Drag & Drop Areas */
-.image-upload-area { border: 2px dashed var(--accent-color); border-radius: 8px; padding: 50px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease; background: rgba(0, 242, 255, 0.02); }
-.image-upload-area:hover, .drag-over { background: rgba(0, 242, 255, 0.1); border-color: var(--success-color); transform: scale(1.02); }
+.image-upload-area { position: relative; overflow: hidden; border: 2px dashed var(--accent-color); border-radius: 8px; padding: 50px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease; background: rgba(0, 242, 255, 0.02); }
+.image-upload-area:hover, .drag-over { background: rgba(0, 242, 255, 0.1); border-color: var(--success-color); transform: scale(1.02); animation: pulse 1.5s infinite; }
 .upload-icon { font-size: 3.5em; color: var(--accent-color); margin-bottom: 15px; transition: transform 0.3s; }
 .image-upload-area:hover .upload-icon { transform: translateY(-5px); }
 
@@ -94,7 +94,7 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 .text-preview { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border-left: 3px solid var(--accent-color); text-align: left; margin-bottom: 15px; word-wrap: break-word; }
 #evidence-text { font-family: var(--font-head); font-size: 0.95em; color: var(--text-secondary); line-height: 1.5; }
 
-/* --- 6. ARCHITECTURE PAGE (Fully Responsive) --- */
+/* --- 6. ARCHITECTURE PAGE & 3D FLIP CARDS --- */
 .arch-header { text-align: center; margin-bottom: 40px; max-width: 800px; padding: 0 15px;}
 .arch-header h2 { color: var(--accent-color); margin-bottom: 15px; font-family: var(--font-head); font-size: 2rem;}
 .arch-grid { width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -103,23 +103,113 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 .arch-icon { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 15px; }
 .arch-desc { color: var(--text-secondary); font-size: 1.15rem; line-height: 1.6; margin-bottom: 25px; }
 
-/* MASTER DIAGRAM STYLING */
 .master-diagram-container { width: 100%; max-width: 1098px; margin-bottom: 40px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 242, 255, 0.3); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(0, 242, 255, 0.1); }
 .diagram-header { background: rgba(0, 242, 255, 0.1); padding: 15px 20px; font-family: var(--font-head); color: var(--accent-color); font-size: 1.1rem; border-bottom: 1px solid rgba(0, 242, 255, 0.2); }
 .master-diagram-img { display: block; width: 100%; height: auto; aspect-ratio: 1098 / 742; object-fit: contain; }
 
-/* Math Boxes (Responsive Overflow) */
 .math-box { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 25px; margin: 20px 0; color: var(--text-primary); overflow-x: auto; }
 .math-title { color: var(--accent-color); font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;}
-.math-box strong { display: block; color: var(--accent-color); margin-bottom: 10px; font-family: var(--font-head); font-size: 1.05rem; margin-top: 25px; }
-.math-box strong:first-of-type { margin-top: 0; }
-.math-box p { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.6; }
 
-/* Inline References under math formulas */
-.inline-ref { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(0, 242, 255, 0.1); color: var(--accent-color); text-decoration: none; font-size: 0.9rem; border-radius: 4px; border: 1px solid rgba(0, 242, 255, 0.2); transition: all 0.2s; margin-top: 10px; margin-bottom: 15px;}
-.inline-ref:hover { background: var(--accent-color); color: #000; box-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+/* ==========================================================================
+   FIXED 3D FLIP CARD LOGIC
+   ========================================================================== */
+.heuristic-card {
+    perspective: 1500px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
 
-/* Spectrogram Images Styling */
+.heuristic-card .flipper {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+/* Flipped State */
+.heuristic-card.flipped .flipper {
+    transform: rotateY(180deg);
+}
+
+/* Hover Pop-Out for Front */
+.heuristic-card:hover .flipper {
+    transform: scale(1.02);
+}
+
+/* Hover Pop-Out for Back (Flipped) */
+.heuristic-card.flipped:hover .flipper {
+    transform: rotateY(180deg) scale(1.02);
+}
+
+.card-front, .card-back {
+    grid-area: 1 / 1 / 2 / 2;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden; 
+    background: #0d1424; 
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: #111e36; 
+    border-color: rgba(0, 242, 255, 0.2);
+}
+
+.heuristic-card:hover .card-front,
+.heuristic-card:hover .card-back {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 15px rgba(0, 242, 255, 0.2);
+    border-color: rgba(0, 242, 255, 0.4);
+}
+
+.card-front strong, .card-back strong {
+    display: block; color: var(--accent-color); margin-bottom: 10px; font-family: var(--font-head); font-size: 1.05rem;
+}
+.card-front p, .card-back p { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.6; }
+
+/* ==========================================================================
+   FIXED: INLINE REFERENCES (WHITE TEXT, NO DEFAULT LINK COLORS)
+   ========================================================================== */
+.inline-ref, .inline-ref:link, .inline-ref:visited, .inline-ref:active { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    padding: 8px 12px; 
+    background: rgba(0, 242, 255, 0.15); 
+    color: #ffffff !important; 
+    text-decoration: none; 
+    font-size: 0.9rem; 
+    border-radius: 4px; 
+    border: 1px solid rgba(0, 242, 255, 0.3); 
+    transition: all 0.2s; 
+    margin-top: 10px; 
+    margin-bottom: 5px;
+}
+
+.inline-ref:hover { 
+    background: var(--accent-color); 
+    color: #000000 !important; 
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.6); 
+}
+
+.flip-hint {
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    opacity: 0.7;
+    margin-top: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+
+/* Spectrogram Images */
 .spectrogram-visuals { display: flex; gap: 30px; margin-top: 25px; width: 100%; flex-wrap: wrap;}
 .spec-container { flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 10px;}
 .spec-title { font-family: var(--font-head); font-size: 1.05rem; font-weight: bold; color: var(--text-primary); }
@@ -128,7 +218,6 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 /* Responsive Layout */
 .split-list { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
 
-/* Media Queries for Mobile Responsiveness */
 @media (max-width: 900px) {
     .grid-container, .split-list { grid-template-columns: 1fr; gap: 20px;}
     .arch-card { padding: 1.5rem; }
@@ -145,9 +234,91 @@ body { background-color: var(--bg-color); color: var(--text-primary); font-famil
 }
 
 /* Footer & Utils */
-footer { text-align: center; padding: 1.5rem; font-family: var(--font-head); font-size: 0.85rem; color: var(--text-secondary); opacity: 0.6; }
+footer { text-align: center; padding: 1.5rem; font-family: var(--font-head); font-size: 0.85rem; color: var(--text-secondary); opacity: 0.6; position: relative; z-index: 10;}
 .theme-toggle { position: fixed; bottom: 20px; right: 20px; background: var(--card-bg); border: 1px solid var(--text-secondary); color: var(--text-primary); padding: 12px; border-radius: 50%; cursor: pointer; font-size: 1.3rem; box-shadow: var(--glow); z-index: 1000; }
 .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 15, 28, 0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-.login-box { background: var(--card-bg); padding: 3rem; border: 1px solid var(--accent-color); border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%; max-width: 400px; }
+.login-box { background: var(--card-bg); padding: 3rem; border: 1px solid var(--accent-color); border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%; max-width: 400px; transition: height 0.3s ease;}
 .login-box h2 { color: var(--accent-color); margin-bottom: 1rem; font-family: var(--font-head); font-size: 1.8rem;}
 .login-box input { width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid var(--text-secondary); color: white; margin: 1.5rem 0; font-family: var(--font-head); text-align: center; font-size: 1.15rem; }
+
+/* ==========================================================================
+   7. ENHANCED ANIMATIONS & FX
+   ========================================================================== */
+
+/* CRT Holographic Scanlines */
+.scanlines {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1));
+    background-size: 100% 4px; pointer-events: none; z-index: 1; opacity: 0.6;
+}
+
+[data-theme="light"] .scanlines { opacity: 0.15; }
+
+/* Active Laser Scanner */
+.laser-scan {
+    position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+    background: var(--accent-color); box-shadow: 0 0 15px var(--accent-color), 0 0 30px var(--accent-color);
+    animation: scanline 2s linear infinite; z-index: 10;
+}
+@keyframes scanline {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* Drag-and-Drop Heartbeat Pulse */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(0, 255, 157, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+}
+
+/* Terminal Boot-Up Sequence */
+.terminal-output {
+    margin-top: 20px; font-family: var(--font-head); font-size: 0.9rem;
+    color: var(--success-color); text-align: left; background: #000;
+    padding: 15px; border-radius: 4px; border: 1px solid var(--success-color);
+    box-shadow: 0 0 10px rgba(0,255,157,0.2); min-height: 100px;
+}
+.terminal-line { margin-bottom: 5px; opacity: 0; animation: fadeIn 0.1s forwards; }
+
+/* The FAKE Chromatic Glitch Effect */
+.glitch { position: relative; animation: glitch-anim 1.5s infinite; }
+.glitch::before, .glitch::after {
+    content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.glitch::before {
+    left: 2px; text-shadow: -2px 0 var(--danger-color); clip: rect(24px, 550px, 90px, 0);
+    animation: glitch-anim-2 2s infinite linear alternate-reverse;
+}
+.glitch::after {
+    left: -2px; text-shadow: -2px 0 var(--accent-color); clip: rect(85px, 550px, 140px, 0);
+    animation: glitch-anim 2.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { transform: translate(0) }
+    20% { transform: translate(-2px, 1px) }
+    40% { transform: translate(-1px, -1px) }
+    60% { transform: translate(2px, 1px) }
+    80% { transform: translate(1px, -1px) }
+    100% { transform: translate(0) }
+}
+@keyframes glitch-anim-2 {
+    0% { transform: translate(0); clip: rect(10px, 9999px, 30px, 0); }
+    20% { transform: translate(2px, -1px); clip: rect(80px, 9999px, 100px, 0); }
+    40% { transform: translate(-2px, 2px); clip: rect(20px, 9999px, 50px, 0); }
+    60% { transform: translate(2px, 1px); clip: rect(90px, 9999px, 120px, 0); }
+    80% { transform: translate(-1px, -2px); clip: rect(40px, 9999px, 60px, 0); }
+    100% { transform: translate(0); clip: rect(10px, 9999px, 30px, 0); }
+}
+
+/* Audio Visualizer Canvas Styling */
+.visualizer-container {
+    width: 100%; max-width: 500px; height: 120px; background: rgba(0,0,0,0.4); 
+    border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 8px; margin: 0 auto 20px auto;
+    display: flex; justify-content: center; align-items: center; position: relative;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8); overflow: hidden;
+}
+canvas#audio-visualizer { width: 100%; height: 100%; display: block; }
