@@ -39,34 +39,69 @@ const textStatusText = document.getElementById("text-status-text");
 const imageDropArea = document.getElementById("image-drop-area");
 const imageUploadInput = document.getElementById("imageUploadInput");
 const imageStatusText = document.getElementById("image-status-text");
+const imageLaser = document.getElementById("image-laser");
 
 const videoDropArea = document.getElementById("video-drop-area");
 const videoUploadInput = document.getElementById("videoUploadInput");
 const videoStatusText = document.getElementById("video-status-text");
+const videoLaser = document.getElementById("video-laser");
 
 // Result Elements
 const forensicList = document.getElementById("forensic-list");
 const confidenceText = document.getElementById("confidence-text");
 const confidenceFill = document.getElementById("confidence-fill");
+const verdictDisplay = document.getElementById("verdict-display");
 
 let currentUser = "Unknown_Agent";
 let lastResultData = null; 
 let currentMode = "AUDIO"; 
-let isRecording = false;
-let mediaRecorder, audioChunks = [], audioContext, analyser;
 
-/* --- UI: THEME & LOGIN --- */
+// Audio Recording Variables
+let isRecording = false;
+let mediaRecorder;
+let audioChunks = [];
+let audioContext;
+let analyser;
+let source;
+let animationId;
+
+/* --- UI: THEME & LOGIN TERMINAL SEQUENCE --- */
 themeBtn.addEventListener("click", () => {
     const currentTheme = document.body.getAttribute("data-theme");
     document.body.setAttribute("data-theme", currentTheme === "light" ? "dark" : "light");
     themeBtn.textContent = currentTheme === "light" ? "🌗" : "☀️";
 });
 
-document.getElementById("login-btn").addEventListener("click", () => {
+document.getElementById("login-btn").addEventListener("click", async () => {
     const name = document.getElementById("username-input").value.trim();
     if (name.length > 2) {
         currentUser = name;
-        document.getElementById("login-overlay").classList.add("hidden");
+        
+        // Hide inputs, show terminal
+        document.getElementById("username-input").classList.add("hidden");
+        document.getElementById("login-btn").classList.add("hidden");
+        document.getElementById("login-desc").classList.add("hidden");
+        
+        const terminal = document.getElementById("terminal-output");
+        terminal.classList.remove("hidden");
+        terminal.innerHTML = "";
+        
+        const lines = [
+            "> Initializing Secure Connection...",
+            `> Authenticating Agent: ${name}...`,
+            "> Bypassing Biometric Lock...",
+            "> Establishing AWS Quantum Tunnel (us-east-1)...",
+            "> ACCESS GRANTED."
+        ];
+        
+        for (let i = 0; i < lines.length; i++) {
+            await new Promise(r => setTimeout(r, 400));
+            terminal.innerHTML += `<div class="terminal-line">${lines[i]}</div>`;
+        }
+        
+        await new Promise(r => setTimeout(r, 800));
+        document.getElementById("login-overlay").style.opacity = "0";
+        setTimeout(() => document.getElementById("login-overlay").classList.add("hidden"), 500);
         statusText.textContent = `Welcome, Agent ${currentUser}. System Ready.`;
     } else {
         alert("Please enter a valid Agent ID.");
@@ -96,16 +131,13 @@ function switchView(view) {
 /* --- UI: MODE SWITCHING (Animated) --- */
 Object.keys(modeBtns).forEach(key => {
     modeBtns[key].addEventListener("click", () => {
-        // Reset all
         Object.values(modeBtns).forEach(btn => btn.classList.remove("active"));
         Object.values(sections).forEach(sec => sec.classList.add("hidden"));
         resultSection.classList.add("hidden");
 
-        // Activate target
         modeBtns[key].classList.add("active");
         sections[key].classList.remove("hidden");
         
-        // Force reflow for animation restart
         void sections[key].offsetWidth; 
         sections[key].classList.add("fade-in");
         currentMode = key;
@@ -144,6 +176,91 @@ setupDragDrop(videoDropArea, videoUploadInput, uploadVideo);
 document.getElementById("uploadBtn").addEventListener("click", () => document.getElementById("fileUpload").click());
 document.getElementById("fileUpload").addEventListener("change", (e) => { if (e.target.files[0]) uploadAudio(e.target.files[0]); });
 
+
+/* --- AUDIO: LIVE MICROPHONE & VISUALIZER --- */
+recordBtn.addEventListener("click", toggleRecording);
+
+async function toggleRecording() {
+    if (!isRecording) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            startVisualizer(stream);
+            
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                uploadAudio(audioBlob);
+                audioChunks = [];
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            btnText.textContent = "🛑 STOP & ANALYZE";
+            recordBtn.style.borderColor = "var(--danger-color)";
+            recordBtn.style.color = "var(--danger-color)";
+            statusText.textContent = "Recording Live Audio...";
+            
+        } catch (err) {
+            alert("Microphone access denied. Please allow microphone permissions.");
+        }
+    } else {
+        mediaRecorder.stop();
+        stopVisualizer();
+        isRecording = false;
+        btnText.textContent = "INITIATE MIC SCAN";
+        recordBtn.style.borderColor = "var(--accent-color)";
+        recordBtn.style.color = "var(--accent-color)";
+    }
+}
+
+function startVisualizer(stream) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.fftSize = 256;
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+        
+        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+        
+        for(let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+            
+            // Cyberpunk Glow Effect
+            canvasCtx.fillStyle = `rgb(0, ${242 - (barHeight/2)}, 255)`; 
+            canvasCtx.shadowBlur = 10;
+            canvasCtx.shadowColor = "rgba(0, 242, 255, 0.8)";
+            
+            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 2;
+        }
+    }
+    draw();
+}
+
+function stopVisualizer() {
+    if (animationId) cancelAnimationFrame(animationId);
+    if (source) source.disconnect();
+    if (audioContext) audioContext.close();
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+
 /* --- BACKEND COMMUNICATION --- */
 analyzeTextBtn.addEventListener("click", async () => {
     const text = textInput.value.trim();
@@ -172,33 +289,40 @@ analyzeTextBtn.addEventListener("click", async () => {
 
 async function uploadImage(file) {
     imageStatusText.textContent = "Scanning Metadata & Visual Artifacts...";
+    imageLaser.classList.remove("hidden"); // Start Laser
     const formData = new FormData(); formData.append("file", file); formData.append("user_id", currentUser);
     try {
         const res = await fetch(`${API_URL}/analyze_image`, { method: "POST", body: formData });
         const data = await res.json();
+        if (data.error) throw new Error(data.error); // Safety Check
         lastResultData = data; lastResultData.type = "IMAGE"; displayResults(data);
     } catch (error) { alert("Backend Error: " + error.message); }
     imageStatusText.textContent = "Ready for input...";
+    imageLaser.classList.add("hidden"); // Stop Laser
 }
 
 async function uploadVideo(file) {
     if (file.size > 15 * 1024 * 1024) return alert("File too large! Max 15MB for demo.");
     videoStatusText.textContent = "Extracting Frames & Audio... This takes a moment.";
+    videoLaser.classList.remove("hidden"); // Start Laser
     const formData = new FormData(); formData.append("file", file); formData.append("user_id", currentUser);
     try {
         const res = await fetch(`${API_URL}/analyze_video`, { method: "POST", body: formData });
         const data = await res.json();
+        if (data.error) throw new Error(data.error); // Safety Check
         lastResultData = data; lastResultData.type = "VIDEO"; displayResults(data);
     } catch (error) { alert("Backend Error: " + error.message); }
     videoStatusText.textContent = "Ready for input...";
+    videoLaser.classList.add("hidden"); // Stop Laser
 }
 
 async function uploadAudio(blob) {
-    statusText.textContent = `Uploading to AWS...`;
+    statusText.textContent = `Uploading to AWS Neural Engine...`;
     const formData = new FormData(); formData.append("file", blob, "recording.wav"); formData.append("user_id", currentUser); 
     try {
         const res = await fetch(`${API_URL}/analyze`, { method: "POST", body: formData });
         const data = await res.json();
+        if (data.error) throw new Error(data.error); // Safety Check
         lastResultData = data; lastResultData.type = "AUDIO"; displayResults(data);
     } catch (error) { alert("Backend Error: " + error.message); }
     statusText.textContent = "Ready for input...";
@@ -210,14 +334,21 @@ function displayResults(data) {
     resultSection.classList.add("fade-in");
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    const verdictBox = document.getElementById("verdict-display");
     const scanId = document.getElementById("scan-id");
 
-    // Verdict styling
-    verdictBox.textContent = data.verdict; 
-    const color = data.verdict === "FAKE" ? "var(--danger-color)" : (data.verdict === "SUSPICIOUS" ? "orange" : "var(--success-color)");
-    verdictBox.style.color = color;
-    confidenceFill.style.backgroundColor = color;
+    // Verdict styling & Glitch Logic
+    verdictDisplay.textContent = data.verdict; 
+    verdictDisplay.setAttribute('data-text', data.verdict); // For glitch effect
+    
+    if (data.verdict === "FAKE") {
+        verdictDisplay.style.color = "var(--danger-color)";
+        confidenceFill.style.backgroundColor = "var(--danger-color)";
+        verdictDisplay.classList.add("glitch");
+    } else {
+        verdictDisplay.style.color = data.verdict === "SUSPICIOUS" ? "orange" : "var(--success-color)";
+        confidenceFill.style.backgroundColor = data.verdict === "SUSPICIOUS" ? "orange" : "var(--success-color)";
+        verdictDisplay.classList.remove("glitch");
+    }
     
     // Smooth, Float-Safe Counter Animation
     const numericConfidence = parseFloat(data.confidence) || 0;
@@ -245,29 +376,48 @@ function displayResults(data) {
         document.getElementById("analyzed-image-preview").src = data.image_url; 
     }
 
-    // Staggered Forensics List with New Emoji Mappings
+    // Staggered Decryption Forensics List
     forensicList.innerHTML = ""; 
     if (data.forensics && Array.isArray(data.forensics)) {
         data.forensics.forEach((ind, index) => {
             const li = document.createElement("li");
-            li.textContent = ind;
             li.className = "forensic-item";
             
-            // Emoji-based CSS coloring
-            if (ind.includes("✅")) {
-                li.style.borderColor = "var(--success-color)";
-            } else if (ind.includes("⚠️")) {
-                li.style.borderColor = "var(--danger-color)";
-            } else if (ind.includes("🧠") || ind.includes("📊") || ind.includes("🔧") || ind.includes("ℹ️")) {
-                li.style.borderColor = "var(--accent-color)";
-            } else {
-                li.style.borderColor = "var(--text-secondary)";
-            }
+            if (ind.includes("✅")) li.style.borderColor = "var(--success-color)";
+            else if (ind.includes("⚠️")) li.style.borderColor = "var(--danger-color)";
+            else li.style.borderColor = "var(--accent-color)";
             
-            li.style.animationDelay = `${index * 0.15}s`; // Stagger effect
+            li.style.animationDelay = `${index * 0.15}s`; 
             forensicList.appendChild(li);
+            
+            // Trigger the hacker decryption effect
+            decryptText(li, ind, index * 150);
         });
     }
+}
+
+// Hacker Decryption Effect Helper
+function decryptText(element, finalString, delay) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+";
+    let iterations = 0;
+    const maxIterations = 10;
+    
+    setTimeout(() => {
+        const interval = setInterval(() => {
+            element.textContent = finalString.split('').map((char, index) => {
+                if(index < iterations * (finalString.length / maxIterations)) {
+                    return finalString[index];
+                }
+                return chars[Math.floor(Math.random() * chars.length)];
+            }).join('');
+            
+            if(iterations >= maxIterations){
+                clearInterval(interval);
+                element.textContent = finalString; // Ensure exact final string
+            }
+            iterations++;
+        }, 30);
+    }, delay);
 }
 
 // Fixed Animation helper for Floating Point numbers
@@ -279,14 +429,12 @@ function animateValue(id, start, end, duration) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         
-        // Calculate the current value based on progress and format to 2 decimals
         let currentVal = (progress * (end - start) + start).toFixed(2);
         obj.innerHTML = currentVal + "%";
         
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
-            // Ensure the exact final float value is displayed at the very end
             obj.innerHTML = end.toFixed(2) + "%";
         }
     };
