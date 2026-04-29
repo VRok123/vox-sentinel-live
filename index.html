@@ -21,12 +21,15 @@
 </head>
 <body>
 
+    <div class="scanlines"></div>
+
     <div id="login-overlay" class="login-overlay">
-        <div class="login-box">
-            <h2>🛡️ AGENT LOGIN</h2>
-            <p>Enter your ID to access VoxSentinel</p>
+        <div class="login-box" id="login-box">
+            <h2 id="login-title">🛡️ AGENT LOGIN</h2>
+            <p id="login-desc">Enter your ID to access VoxSentinel</p>
             <input type="text" id="username-input" placeholder="Agent Name / ID" autocomplete="off">
             <button id="login-btn" class="cyber-btn">AUTHENTICATE</button>
+            <div id="terminal-output" class="terminal-output hidden"></div>
         </div>
     </div>
 
@@ -66,7 +69,7 @@
                     <canvas id="audio-visualizer"></canvas>
                 </div>
                 <div class="controls">
-                    <button id="recordBtn" class="cyber-btn"><span id="btnText">INITIATE SCAN</span></button>
+                    <button id="recordBtn" class="cyber-btn"><span id="btnText">INITIATE MIC SCAN</span></button>
                     <input type="file" id="fileUpload" accept="audio/*" hidden>
                     <button id="uploadBtn" class="secondary-btn">📂 Upload File</button>
                 </div>
@@ -87,6 +90,7 @@
                 <h2>Image Forensic Scanner</h2>
                 <p class="subtitle">Upload images to detect Deepfakes and Stable Diffusion artifacts.</p>
                 <div class="image-upload-area" id="image-drop-area">
+                    <div class="laser-scan hidden" id="image-laser"></div>
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     <p>Click or Drop Image Here</p>
                     <input type="file" id="imageUploadInput" accept="image/*" hidden>
@@ -98,6 +102,7 @@
                 <h2>Video Forensic Scanner</h2>
                 <p class="subtitle">Upload MP4 to detect Deepfake faces and synthetic audio (Cross-Modal).</p>
                 <div class="image-upload-area" id="video-drop-area">
+                    <div class="laser-scan hidden" id="video-laser"></div>
                     <i class="fas fa-video upload-icon"></i>
                     <p>Click or Drop Video (MP4) Here</p>
                     <input type="file" id="videoUploadInput" accept="video/mp4" hidden>
@@ -174,48 +179,109 @@
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-wave-square"></i> Feature Extraction Math</h4>
                             
-                            <strong>1. Fast Fourier Transformation (FFT)</strong>
-                            <p>We apply the Short-Time Fourier Transform (STFT) to map time-domain waveforms into frequency-domain spectrograms.</p>
-                            $$ X(m, \omega) = \sum_{n=-\infty}^{\infty} x(n) w(n - m) e^{-j\omega n} $$
-                            <a href="https://ieeexplore.ieee.org/document/1457735" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Cooley & Tukey (1965): Machine Calculation of Complex Fourier Series</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>1. Fast Fourier Transformation (FFT)</strong>
+                                        <p>We apply the Short-Time Fourier Transform (STFT) to map time-domain waveforms into frequency-domain spectrograms.</p>
+                                        $$ X(m, \omega) = \sum_{n=-\infty}^{\infty} x(n) w(n - m) e^{-j\omega n} $$
+                                        <a href="https://ieeexplore.ieee.org/document/1457735" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Cooley & Tukey (1965): Machine Calculation of Complex Fourier Series</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-microchip"></i> Spectral Leakage & Windowing</strong>
+                                        <p>Raw FFT assumes infinite periodicity. To prevent "spectral leakage" across frequency bins, VoxSentinel applies a Hann window function, mathematically tapering the edges of the audio frame to zero before transformation.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <strong>2. Mel Scale Transformation</strong>
-                            <p>Frequencies ($f$) are non-linearly compressed to the Mel scale ($m$) to mimic the logarithmic acoustic perception of the human cochlea.</p>
-                            $$ m = 2595 \log_{10}\left(1 + \frac{f}{700}\right) $$
-                            <a href="https://asa.scitation.org/doi/10.1121/1.1915893" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Stevens et al. (1937): A Scale for the Measurement of Pitch</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>2. Mel Scale Transformation</strong>
+                                        <p>Frequencies ($f$) are non-linearly compressed to the Mel scale ($m$) to mimic the logarithmic acoustic perception of the human cochlea.</p>
+                                        $$ m = 2595 \log_{10}\left(1 + \frac{f}{700}\right) $$
+                                        <a href="https://asa.scitation.org/doi/10.1121/1.1915893" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Stevens et al. (1937): A Scale for the Measurement of Pitch</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-filter"></i> Triangular Filter Banks</strong>
+                                        <p>The transformation utilizes 128 overlapping triangular filters. Below 1kHz, filters are linearly spaced to capture human speech formants; above 1kHz, they space logarithmically to compress and discard irrelevant high-frequency noise.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <strong>3. Power to Decibels ($dB$)</strong>
-                            <p>Raw amplitude spectrograms are converted to logarithmic power spectrograms relative to peak power ($S_{ref}$) for CNN ingestion.</p>
-                            $$ L_{dB} = 10 \log_{10} \left( \frac{S}{S_{ref}} \right) $$
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>3. Power to Decibels ($dB$)</strong>
+                                        <p>Raw amplitude spectrograms are converted to logarithmic power spectrograms relative to peak power ($S_{ref}$) for CNN ingestion.</p>
+                                        $$ L_{dB} = 10 \log_{10} \left( \frac{S}{S_{ref}} \right) $$
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-compress-arrows-alt"></i> Dynamic Range Compression</strong>
+                                        <p>Raw power values span massive magnitudes, which causes Vanishing Gradients during neural backpropagation. The $10\log_{10}$ conversion strictly bounds the data into a dense, CNN-friendly tensor matrix.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-brain"></i> Heuristics & Classification</h4>
                             
-                            <strong>4. Pitch Variance ($\sigma_{F_0}$)</strong>
-                            <p>Using Probabilistic YIN (pYIN), we extract the fundamental frequency ($F_0$). Low variance flags monotone AI delivery lacking human prosody.</p>
-                            $$ \sigma_{F_0} = \sqrt{\frac{1}{N} \sum (F_{0,i} - \mu_{F_0})^2} $$
-                            <a href="https://ieeexplore.ieee.org/document/6853678" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Mauch & Dixon (2014): pYIN Fundamental Frequency Estimator</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>4. Pitch Variance ($\sigma_{F_0}$)</strong>
+                                        <p>Using Probabilistic YIN (pYIN), we extract the fundamental frequency ($F_0$). Low variance flags monotone AI delivery lacking human prosody.</p>
+                                        $$ \sigma_{F_0} = \sqrt{\frac{1}{N} \sum (F_{0,i} - \mu_{F_0})^2} $$
+                                        <a href="https://ieeexplore.ieee.org/document/6853678" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Mauch & Dixon (2014): pYIN Fundamental Frequency Estimator</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-wave-square"></i> Jitter & Micro-Intonation</strong>
+                                        <p>While AI can mimic macro-pitch changes, it fails at "Jitter"—the cycle-to-cycle frequency variations caused by the chaotic physics of human vocal cords. Low variance mathematically isolates vocoder synthesis.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <strong>5. Silence Ratio & Spectral Roll-Off</strong>
-                            <p>We measure the ratio of speaking time to silence, and analyze spectral energy above 7kHz to catch missing high-frequency data caused by AI vocoders.</p>
-                            $$ Ratio_{>7kHz} = \frac{\sum_{f>7000} |S(f)|^2}{\sum |S(f)|^2} $$
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>5. Silence Ratio & Spectral Roll-Off</strong>
+                                        <p>We measure the ratio of speaking time to silence, and analyze spectral energy above 7kHz to catch missing high-frequency data caused by AI vocoders.</p>
+                                        $$ Ratio_{>7kHz} = \frac{\sum_{f>7000} |S(f)|^2}{\sum |S(f)|^2} $$
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-chart-area"></i> Zero-Crossing Rate (ZCR)</strong>
+                                        <p>Beyond absolute volume thresholds, the engine measures the rate at which the signal changes sign. AI audio often leaves unnatural, continuous white noise in the upper frequency bands during "silent" spans.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <strong>6. CNN Sigmoid Activation</strong>
-                            <p>The 128x128 Mel-spectrogram is processed by the CNN. The final classification layer uses a Sigmoid function to output a normalized probability ($0 \to 1$).</p>
-                            $$ \sigma(x) = \frac{1}{1 + e^{-x}} $$
-                            <a href="https://arxiv.org/abs/2012.14758" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Zhang et al. (2021): Deep Learning for Audio Deepfake Detection</a>
-                        </div>
-                    </div>
-
-                    <div class="spectrogram-visuals">
-                        <div class="spec-container">
-                            <span class="spec-title">✅ REAL: High Variance & Full Freq</span>
-                            <img src="spectrogram_real.png" alt="Real Spectrogram" class="real-spec-img">
-                        </div>
-                        <div class="spec-container">
-                            <span class="spec-title">⚠️ FAKE: Smudged & 7kHz Cutoff</span>
-                            <img src="spectrogram_fake.png" alt="Fake Spectrogram" class="fake-spec-img">
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>6. CNN Sigmoid Activation</strong>
+                                        <p>The 128x128 Mel-spectrogram is processed by the CNN. The final classification layer uses a Sigmoid function to output a normalized probability ($0 \to 1$).</p>
+                                        $$ \sigma(x) = \frac{1}{1 + e^{-x}} $$
+                                        <a href="https://arxiv.org/abs/2012.14758" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Zhang et al. (2021): Deep Learning for Audio Deepfake Detection</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-network-wired"></i> Binary Cross-Entropy</strong>
+                                        <p>Sigmoid maps raw logits to a strict $(0, 1)$ range. Unlike Softmax (which outputs a distribution across multiple classes), Sigmoid forces the CNN to weigh evidence strictly on a continuous spectrum between Real and Fake.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -229,49 +295,145 @@
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-chart-line"></i> Macro-Statistics & Bypass</h4>
 
-                            <strong>1. Burstiness ($\sigma$) & Hapax Legomena</strong>
-                            <p>We calculate sentence length deviation ($\sigma$) and the ratio of words appearing exactly once. AI models generate uniform sentences with restricted Top-P bounds, whereas humans create chaotic pacing and long-tail Zipfian distributions.</p>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>1. Burstiness ($\sigma$) & Hapax Legomena</strong>
+                                        <p>We calculate sentence length deviation ($\sigma$) and the ratio of words appearing exactly once. AI models generate uniform sentences, whereas humans create chaotic pacing and long-tail vocabulary distributions.</p>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-chart-bar"></i> Temperature & Nucleus Sampling</strong>
+                                        <p>LLMs use Top-p (Nucleus) sampling to truncate low-probability words, ensuring safe output. This mathematically eliminates the long-tail Zipfian vocabulary and the chaotic emotional pacing inherent to human writing.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <strong>2. Dynamic Bypass Protocol</strong>
-                            <p>The system automatically disables macro-statistics for inputs under 60 words, relying purely on Zlib compression and neural clamping to prevent the "Short-Text Fallacy."</p>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>2. Dynamic Bypass Protocol</strong>
+                                        <p>The system automatically disables macro-statistics for inputs under 60 words, relying purely on Zlib compression and neural clamping to prevent the "Short-Text Fallacy."</p>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-shield-alt"></i> The Law of Large Numbers</strong>
+                                        <p>Statistical stylometrics (like the standard deviation of sentence length) require a minimum $N$ sample size to be statistically significant. Bypassing prevents massive Calibration Errors on short, isolated inputs like tweets.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <strong>3. Algorithmic Predictability (zlib)</strong>
-                            <p>We evaluate structural predictability using lossless `zlib` compression. LLMs output mathematically "smooth" token paths that compress significantly tighter than high-entropy human text.</p>
-                            $$ NCD(x, y) = \frac{C(xy) - \min\{C(x), C(y)\}}{\max\{C(x), C(y)\}} $$
-                            <a href="https://ieeexplore.ieee.org/document/1057732" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Ziv & Lempel (1977): Sequential Data Compression</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>3. Algorithmic Predictability (zlib)</strong>
+                                        <p>We evaluate structural predictability using lossless `zlib` compression. LLMs output mathematically "smooth" token paths that compress tighter than high-entropy human text.</p>
+                                        $$ NCD(x, y) = \frac{C(xy) - \min\{C(x), C(y)\}}{\max\{C(x), C(y)\}} $$
+                                        <a href="https://ieeexplore.ieee.org/document/1057732" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Ziv & Lempel (1977): Sequential Data Compression</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-file-archive"></i> Kolmogorov Complexity</strong>
+                                        <p>AI models are auto-regressive Markov chains; they output mathematically probable token sequences. Predictable sequences map perfectly to LZ77 dictionary compression algorithms, yielding unnaturally high compression ratios.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-brain"></i> Syntactic & Cognitive Profiling</h4>
                             
-                            <strong>4. Grammatical Profiling (spaCy NLP)</strong>
-                            <p>We parse dependency trees to flag "Helpful Assistant Bias." AI relies on shallow, dense grammatical trees, while humans utilize deep, nested recursive clauses and active subjectivity.</p>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>4. Grammatical Profiling (spaCy)</strong>
+                                        <p>We parse dependency trees to flag "Helpful Assistant Bias." AI relies on shallow, dense grammatical trees, while humans utilize deep, nested recursive clauses and active subjectivity.</p>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-project-diagram"></i> NLP Dependency Parsing</strong>
+                                        <p>We analyze Subject-Verb-Object (SVO) relationships. LLMs exhibit a systemic bias, over-indexing on dense nominal subjects and passive structures, whereas humans drift freely between active voicing and subjective phrasing.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <strong>5. Cognitive Oscillation (Flesch-Kincaid)</strong>
-                            <p>Measures readability drift ($\Delta FK$) across sentences. AI models maintain rigid, continuous grade-level constraints, while human writing naturally oscillates between complex and simple clauses.</p>
-                            $$ \Delta FK = \max(FK_i) - \min(FK_i) $$
-                            <a href="https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Kincaid et al. (1975): Readability Formula</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>5. Cognitive Oscillation (Flesch-Kincaid)</strong>
+                                        <p>Measures readability drift ($\Delta FK$) across sentences. AI models maintain continuous grade-level constraints, while human writing naturally oscillates between complex and simple clauses.</p>
+                                        $$ \Delta FK = \max(FK_i) - \min(FK_i) $$
+                                        <a href="https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Kincaid et al. (1975): Readability Formula</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-book-reader"></i> Syllabic Density Tracking</strong>
+                                        <p>The algorithm maps syllables-per-word against words-per-sentence over time. Human thought drifts in cognitive load, resulting in high variance ($\Delta FK$), while AI algorithms maintain a rigid, programmed baseline.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-heartbeat"></i> Emotional Trajectory</h4>
                             
-                            <strong>6. Subjective Variance (VADER)</strong>
-                            <p>The system calculates sentiment standard deviation ($\sigma_{vader}$) across the text. RLHF safety guardrails force AI into flat, neutral emotional trajectories, whereas human subjectivity exhibits high dynamic variance and erratic emotional shifts.</p>
-                            $$ \sigma_{vader} = \sqrt{\frac{1}{N} \sum (V_i - \mu_{vader})^2} $$
-                            <a href="https://github.com/cjhutto/vaderSentiment" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Hutto & Gilbert (2014): VADER Sentiment Analysis</a>
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>6. Subjective Variance (VADER)</strong>
+                                        <p>The system calculates sentiment standard deviation ($\sigma_{vader}$). RLHF guardrails force AI into flat, neutral trajectories, whereas human subjectivity exhibits high dynamic variance.</p>
+                                        $$ \sigma_{vader} = \sqrt{\frac{1}{N} \sum (V_i - \mu_{vader})^2} $$
+                                        <a href="https://github.com/cjhutto/vaderSentiment" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Hutto & Gilbert (2014): VADER Sentiment Analysis</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-user-lock"></i> RLHF Lobotomization</strong>
+                                        <p>Reinforcement Learning from Human Feedback (RLHF) forces AI to hedge opinions and remain politically neutral. VADER tracks valence polarity; a flat trajectory indicates systemic safety guardrails suppressing emotional shifts.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="math-box">
                             <h4 class="math-title"><i class="fas fa-project-diagram"></i> Neural Logic & Ensemble</h4>
 
-                            <strong>7. Softmax Clamping (RoBERTa)</strong>
-                            <p>Fine-tuned on the HC3 dataset, RoBERTa maps deep contextual relationships. To prevent Calibration Error, we apply a "Softmax Clamp" to stabilize extreme probability spikes before they reach the voting matrix.</p>
-                            $$ Attention(Q, K, V) = softmax\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>7. Softmax Clamping (RoBERTa)</strong>
+                                        <p>To prevent Calibration Error, we apply a "Softmax Clamp" to stabilize extreme probability spikes before they reach the voting matrix.</p>
+                                        $$ Attention(Q, K, V) = softmax\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-sliders-h"></i> OOD Overconfidence Limits</strong>
+                                        <p>Neural networks suffer from Calibration Error—they often predict 99.9% certainty on "Out of Distribution" data they've never seen. The Clamp artificially restricts logits to $0.2 \leq p \leq 0.8$, forcing reliance on the wider ensemble.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <strong>8. The Asymmetric Voting Matrix</strong>
-                            <p>To counter the "Subjectivity Exploit," the platform utilizes an asymmetric penalty/reward matrix based on Dempster-Shafer theory. The system aggressively penalizes robotic traits but restricts rewards for easily spoofable human traits.</p>
-                            $$ Bel(A) = \sum_{B \subseteq A} m(B) $$
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>8. The Asymmetric Voting Matrix</strong>
+                                        <p>Utilizes an asymmetric penalty/reward matrix based on Dempster-Shafer theory. The system aggressively penalizes robotic traits but restricts rewards for easily spoofable human traits.</p>
+                                        $$ Bel(A) = \sum_{B \subseteq A} m(B) $$
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-balance-scale"></i> Handling 'Ignorance'</strong>
+                                        <p>Unlike standard Bayesian probability, which forces a binary $p$ and $1-p$ state, DS Theory allows for a mass of "Ignorance" (uncertainty). It accumulates evidence independently before collapsing into a final Belief state.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -284,13 +446,56 @@
                     <div class="split-list">
                         <div class="math-box" style="background: transparent; border: none; padding: 0;">
                             <h4 style="color: var(--text-primary); margin-bottom: 10px; font-family: var(--font-head);">Local Extraction (Metadata)</h4>
-                            <p style="color: var(--text-secondary); margin-bottom: 8px;"><strong>Software Signature Sweeping:</strong> The Python backend parses raw EXIF headers before rendering, flagging hidden metadata injected by generators (e.g., <code>Software: Midjourney</code>).</p>
+                            
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>Software Signature Sweeping</strong>
+                                        <p style="color: var(--text-secondary); margin-bottom: 8px;">The Python backend parses raw EXIF headers before rendering, flagging hidden metadata injected by generators (e.g., <code>Software: Midjourney</code>).</p>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-file-code"></i> Hexadecimal Extraction</strong>
+                                        <p>Deepfake generators (Midjourney, DALL-E) embed generation parameters deep in the APP1 segment of the JPEG EXIF header. The backend parses the raw binary headers before decoding the image matrix to bypass metadata strippers.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                        
                         <div class="math-box" style="background: transparent; border: none; padding: 0;">
                             <h4 style="color: var(--text-primary); margin-bottom: 10px; font-family: var(--font-head);">Cloud Analysis (Temporal & Kinematics)</h4>
-                            <p style="color: var(--text-secondary); margin-bottom: 8px;"><strong>Structural Shifting:</strong> Analyzes complex background geometry across multiple frames to detect the slow, non-Euclidean "morphing" characteristic of generative models.</p>
-                            <p style="color: var(--text-secondary); margin-bottom: 8px;"><strong>Kinematic Failures:</strong> Evaluates shadow angles, reflection consistency, and gravity mapping.</p>
-                            <a href="https://arxiv.org/abs/1901.08971" target="_blank" class="inline-ref"><i class="fas fa-book"></i> Rössler et al. (2019): FaceForensics++ Manipulated Facial Images</a>
+                            
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>Structural Shifting</strong>
+                                        <p style="color: var(--text-secondary); margin-bottom: 8px;">Analyzes complex background geometry across multiple frames to detect the slow, non-Euclidean "morphing" characteristic of generative models.</p>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-cube"></i> Latent Space Instability</strong>
+                                        <p>AI video generation doesn't map actual 3D space; it hallucinates 2D pixels frame-by-frame. Optical flow analysis reveals temporal instability, where stationary background objects "melt" because the latent space lacks object permanence.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="heuristic-card" onclick="this.classList.toggle('flipped')">
+                                <div class="flipper">
+                                    <div class="card-front">
+                                        <strong>Kinematic Failures</strong>
+                                        <p style="color: var(--text-secondary); margin-bottom: 8px;">Evaluates shadow angles, reflection consistency, and basic Newtonian gravity mapping.</p>
+                                        <a href="https://arxiv.org/abs/1901.08971" target="_blank" class="inline-ref" onclick="event.stopPropagation();"><i class="fas fa-book"></i> Rössler et al. (2019): FaceForensics++ Manipulated Facial Images</a>
+                                        <div class="flip-hint"><i class="fas fa-hand-pointer"></i> Click for Deep Dive</div>
+                                    </div>
+                                    <div class="card-back">
+                                        <strong><i class="fas fa-walking"></i> Physics Engine Override</strong>
+                                        <p>Without a structural skeleton, AI generators fail at friction and gravity. The engine flags impossible kinematics, such as feet sliding across the floor without friction or shadows casting in directions independent of the global light source.</p>
+                                        <div class="flip-hint"><i class="fas fa-undo"></i> Return</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -301,6 +506,7 @@
     </div>
     <footer><p>SECURE CONNECTION ESTABLISHED • AWS CLOUD (us-east-1)</p></footer>
     <button id="theme-btn" class="theme-toggle">🌗</button>
+    
     <script src="script.js"></script>
 </body>
 </html>
